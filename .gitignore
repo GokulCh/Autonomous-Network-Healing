@@ -1,0 +1,61 @@
+# Logs
+logs/
+*.log
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Python Specific
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.pkl
+
+# Environment Files
+env/
+.conda/
+.venv/
+*.env
+
+# Datasets
+datasets/raw_data/
+datasets/processed_data/
+datasets/simulation_data/
+
+# Model Files
+models/anomaly_detection/*.h5
+models/anomaly_detection/*.pkl
+models/reinforcement_learning/*.pkl
+models/reinforcement_learning/training_logs/
+
+# Simulation Files
+simulations/results/
+simulations/ns3_configs/*.tmp
+
+# IDE Specific
+.idea/
+.vscode/
+*.iml
+
+# Documentation
+docs/*.docx
+reports/*.docx
+reports/*.pptx
+
+# Temporary and Backup Files
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Configuration and Debugging Files
+utilities/logging/
+utilities/config/config.yaml
+utilities/config/hyperparameters.json
+
+# Visualization Outputs
+utilities/visualization/*.png
+utilities/visualization/*.jpg
+utilities/visualization/*.pdf
