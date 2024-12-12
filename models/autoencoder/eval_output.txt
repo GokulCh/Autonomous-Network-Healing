@@ -1,0 +1,18 @@
+WARNING:absl:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+Successfully loaded model from network_anomaly_autoencoder.h5
+Error loading model from simple_network_healing_model.h5: string indices must be integers
+Data loaded successfully.
+
+--- Comprehensive Model Evaluation Report ---
+
+Autoencoder Evaluation:
+5480/5480 ━━━━━━━━━━━━━━━━━━━━ 11s 2ms/step
+mean_reconstruction_error: 0.7481982791583732
+std_reconstruction_error: 4.347695564805183
+anomaly_threshold: 7.269741626366148
+total_samples: 175341
+detected_anomalies: 7613
+anomaly_percentage: 4.341825357446347
+
+Reinforcement Learning Model Evaluation:
+Cannot evaluate: Model or data not loaded.
