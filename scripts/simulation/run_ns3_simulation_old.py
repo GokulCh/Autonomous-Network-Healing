@@ -4,31 +4,6 @@ import pandas as pd
 import tensorflow as tf
 from typing import List, Dict, Any
 
-def load_model_with_custom_objects(model_path: str):
-    """
-    Safely load a Keras model with custom loss functions and error handling
-    
-    Parameters:
-    - model_path: Path to the saved Keras model
-    
-    Returns:
-    - Loaded Keras model or None if loading fails
-    """
-    custom_objects = {
-        'mse': tf.keras.losses.MeanSquaredError(),
-        # Add any other custom loss functions or layers here
-    }
-    
-    try:
-        model = tf.keras.models.load_model(
-            model_path, 
-            custom_objects=custom_objects
-        )
-        return model
-    except Exception as e:
-        print(f"Error loading model from {model_path}: {e}")
-        return None
-
 class NS3NetworkSimulation:
     def __init__(self, 
                  autoencoder_model_path: str, 
@@ -40,13 +15,9 @@ class NS3NetworkSimulation:
         - autoencoder_model_path: Path to saved autoencoder model
         - rl_model_path: Path to saved reinforcement learning model
         """
-        # Load pre-trained models with custom loading function
-        self.autoencoder = load_model_with_custom_objects(autoencoder_model_path)
-        self.rl_model = load_model_with_custom_objects(rl_model_path)
-        
-        # Validate model loading
-        if self.autoencoder is None or self.rl_model is None:
-            raise ValueError("Failed to load one or more ML models. Check model paths and compatibility.")
+        # Load pre-trained models
+        self.autoencoder = tf.keras.models.load_model(autoencoder_model_path)
+        self.rl_model = tf.keras.models.load_model(rl_model_path)
         
         # Simulation configurations
         self.simulation_scenarios = [
@@ -123,7 +94,7 @@ class NS3NetworkSimulation:
         
         # Additional scenario-specific parameters
         for key, value in config.items():
-            if key not in ['nodes', 'duration']:
+            if key != 'nodes' and key != 'duration':
                 ns3_command.append(f'--{key}={value}')
         
         try:
@@ -142,7 +113,6 @@ class NS3NetworkSimulation:
         
         except subprocess.CalledProcessError as e:
             print(f"Simulation failed: {e}")
-            print(f"Error output: {e.stderr}")
             return None
         except subprocess.TimeoutExpired:
             print("Simulation timed out")
@@ -158,18 +128,15 @@ class NS3NetworkSimulation:
         Returns:
         - Dictionary of parsed metrics
         """
-        try:
-            metrics = {
-                'total_packets': int(output.split('total_packets:')[1].split('\n')[0]),
-                'packet_loss_rate': float(output.split('packet_loss_rate:')[1].split('\n')[0]),
-                'average_latency': float(output.split('average_latency:')[1].split('\n')[0]),
-                'network_throughput': float(output.split('network_throughput:')[1].split('\n')[0])
-            }
-            return metrics
-        except (IndexError, ValueError) as e:
-            print(f"Error parsing simulation output: {e}")
-            print(f"Problematic output: {output}")
-            return None
+        # Placeholder for parsing logic
+        # In actual implementation, this would parse specific metrics
+        metrics = {
+            'total_packets': int(output.split('total_packets:')[1].split('\n')[0]),
+            'packet_loss_rate': float(output.split('packet_loss_rate:')[1].split('\n')[0]),
+            'average_latency': float(output.split('average_latency:')[1].split('\n')[0]),
+            'network_throughput': float(output.split('network_throughput:')[1].split('\n')[0])
+        }
+        return metrics
     
     def detect_anomalies(self, simulation_data: np.ndarray) -> List[bool]:
         """
@@ -181,20 +148,16 @@ class NS3NetworkSimulation:
         Returns:
         - List of boolean anomaly flags
         """
-        try:
-            # Reconstruct input data
-            reconstructed = self.autoencoder.predict(simulation_data)
-            
-            # Calculate reconstruction error
-            mse = np.mean(np.square(simulation_data - reconstructed), axis=1)
-            
-            # Set anomaly threshold (95th percentile)
-            threshold = np.percentile(mse, 95)
-            
-            return mse > threshold
-        except Exception as e:
-            print(f"Anomaly detection error: {e}")
-            return []
+        # Reconstruct input data
+        reconstructed = self.autoencoder.predict(simulation_data)
+        
+        # Calculate reconstruction error
+        mse = np.mean(np.square(simulation_data - reconstructed), axis=1)
+        
+        # Set anomaly threshold (95th percentile)
+        threshold = np.percentile(mse, 95)
+        
+        return mse > threshold
     
     def apply_corrective_actions(self, anomalies: List[bool], metrics: Dict[str, Any]):
         """
@@ -204,25 +167,22 @@ class NS3NetworkSimulation:
         - anomalies: List of detected anomalies
         - metrics: Network performance metrics
         """
-        try:
-            # Convert metrics and anomalies to state representation
-            state = self._prepare_rl_state(anomalies, metrics)
-            
-            # Predict best action using RL model
-            action = np.argmax(self.rl_model.predict(state.reshape(1, -1), verbose=0))
-            
-            # Map action to corrective strategy
-            corrective_actions = {
-                0: "do_nothing",
-                1: "reroute_traffic",
-                2: "isolate_nodes",
-                3: "adjust_bandwidth",
-                4: "reset_connections"
-            }
-            
-            print(f"Recommended Action: {corrective_actions[action]}")
-        except Exception as e:
-            print(f"Error applying corrective actions: {e}")
+        # Convert metrics and anomalies to state representation
+        state = self._prepare_rl_state(anomalies, metrics)
+        
+        # Predict best action using RL model
+        action = np.argmax(self.rl_model.predict(state.reshape(1, -1)))
+        
+        # Map action to corrective strategy
+        corrective_actions = {
+            0: "do_nothing",
+            1: "reroute_traffic",
+            2: "isolate_nodes",
+            3: "adjust_bandwidth",
+            4: "reset_connections"
+        }
+        
+        print(f"Recommended Action: {corrective_actions[action]}")
     
     def _prepare_rl_state(self, anomalies: List[bool], metrics: Dict[str, Any]) -> np.ndarray:
         """
@@ -235,25 +195,18 @@ class NS3NetworkSimulation:
         Returns:
         - Normalized state vector
         """
-        try:
-            state_features = [
-                metrics.get('packet_loss_rate', 0),
-                metrics.get('average_latency', 0),
-                metrics.get('network_throughput', 0),
-                sum(anomalies) / len(anomalies) if anomalies else 0  # Proportion of anomalies
-            ]
-            
-            return np.array(state_features)
-        except Exception as e:
-            print(f"Error preparing RL state: {e}")
-            return np.zeros(4)
+        state_features = [
+            metrics['packet_loss_rate'],
+            metrics['average_latency'],
+            metrics['network_throughput'],
+            sum(anomalies) / len(anomalies)  # Proportion of anomalies
+        ]
+        
+        return np.array(state_features)
     
     def comprehensive_network_test(self):
         """
         Run comprehensive network testing across all scenarios
-        
-        Returns:
-        - Dictionary of test results for each scenario
         """
         test_results = {}
         
@@ -282,24 +235,20 @@ class NS3NetworkSimulation:
         return test_results
 
 def main():
-    try:
-        # Initialize simulation framework
-        network_tester = NS3NetworkSimulation(
-            autoencoder_model_path='network_anomaly_autoencoder.h5',
-            rl_model_path='network_healing_rl_model.h5'
-        )
-        
-        # Run comprehensive network tests
-        test_results = network_tester.comprehensive_network_test()
-        
-        # Output results
-        for scenario, results in test_results.items():
-            print(f"\nScenario: {scenario}")
-            print(f"Performance Metrics: {results['metrics']}")
-            print(f"Anomalies Detected: {results['anomalies_detected']}")
+    # Initialize simulation framework
+    network_tester = NS3NetworkSimulation(
+        autoencoder_model_path='network_anomaly_autoencoder.h5',
+        rl_model_path='network_healing_rl_model.h5'
+    )
     
-    except Exception as e:
-        print(f"Simulation framework initialization failed: {e}")
+    # Run comprehensive network tests
+    test_results = network_tester.comprehensive_network_test()
+    
+    # Output results
+    for scenario, results in test_results.items():
+        print(f"\nScenario: {scenario}")
+        print(f"Performance Metrics: {results['metrics']}")
+        print(f"Anomalies Detected: {results['anomalies_detected']}")
 
 if __name__ == '__main__':
     main()
