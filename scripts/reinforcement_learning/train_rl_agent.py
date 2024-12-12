@@ -6,13 +6,7 @@ from typing import List, Dict, Any
 def load_model_with_custom_objects(model_path: str):
     """
     Safely load a Keras model with custom loss functions and error handling
-    
-    Parameters:
-    - model_path: Path to the saved Keras model
-    
-    Returns:
-    - Loaded Keras model or None if loading fails
-    """
+s    """
     custom_objects = {
         'mse': tf.keras.losses.MeanSquaredError(),
         # Add any other custom loss functions or layers here
@@ -44,10 +38,6 @@ class NS3NetworkSimulation:
                  rl_model_path: str):
         """
         Initialize NS3 simulation with pre-trained ML models
-        
-        Parameters:
-        - autoencoder_model_path: Path to saved autoencoder model
-        - rl_model_path: Path to saved reinforcement learning model
         """
         # Load pre-trained models with custom loading function
         self.autoencoder = load_model_with_custom_objects(autoencoder_model_path)
@@ -69,12 +59,6 @@ class NS3NetworkSimulation:
     def generate_ns3_config(self, scenario: str) -> Dict[str, Any]:
         """
         Generate NS3 simulation configuration for different network scenarios
-        
-        Parameters:
-        - scenario: Type of network scenario to simulate
-        
-        Returns:
-        - Dictionary of simulation parameters
         """
         scenarios_config = {
             'traffic_congestion': {
@@ -160,12 +144,6 @@ class NS3NetworkSimulation:
     def _parse_simulation_output(self, output: str) -> Dict[str, Any]:
         """
         Parse NS3 simulation output into structured metrics
-        
-        Parameters:
-        - output: Raw simulation output string
-        
-        Returns:
-        - Dictionary of parsed metrics
         """
         try:
             metrics = {
@@ -183,12 +161,6 @@ class NS3NetworkSimulation:
     def detect_anomalies(self, simulation_data: np.ndarray) -> List[bool]:
         """
         Use autoencoder to detect anomalies in simulation data
-        
-        Parameters:
-        - simulation_data: Network traffic data from NS3
-        
-        Returns:
-        - List of boolean anomaly flags
         """
         try:
             # Reconstruct input data
@@ -208,10 +180,6 @@ class NS3NetworkSimulation:
     def apply_corrective_actions(self, anomalies: List[bool], metrics: Dict[str, Any]):
         """
         Use RL model to determine and apply corrective actions
-        
-        Parameters:
-        - anomalies: List of detected anomalies
-        - metrics: Network performance metrics
         """
         try:
             # Convert metrics and anomalies to state representation
@@ -236,13 +204,6 @@ class NS3NetworkSimulation:
     def _prepare_rl_state(self, anomalies: List[bool], metrics: Dict[str, Any]) -> np.ndarray:
         """
         Prepare state representation for RL model
-        
-        Parameters:
-        - anomalies: List of detected anomalies
-        - metrics: Network performance metrics
-        
-        Returns:
-        - Normalized state vector
         """
         try:
             state_features = [
@@ -260,9 +221,6 @@ class NS3NetworkSimulation:
     def comprehensive_network_test(self):
         """
         Run comprehensive network testing across all scenarios
-        
-        Returns:
-        - Dictionary of test results for each scenario
         """
         test_results = {}
         
@@ -307,4 +265,6 @@ def main():
             print(f"Performance Metrics: {results['metrics']}")
             print(f"Anomalies Detected: {results['anomalies_detected']}")
     
-    except Exception
+    except Exception as e:
+        print(f"Error in main(): {e}")
+        

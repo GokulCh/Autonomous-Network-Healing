@@ -11,10 +11,6 @@ class NetworkAnomalyAutoencoder:
     def __init__(self, input_dim, encoding_dim=32):
         """
         Initialize Autoencoder for Network Anomaly Detection
-        
-        Parameters:
-        - input_dim (int): Number of input features
-        - encoding_dim (int): Dimensionality of the compressed representation
         """
         self.input_dim = input_dim
         self.encoding_dim = encoding_dim
@@ -23,9 +19,6 @@ class NetworkAnomalyAutoencoder:
     def build_autoencoder(self):
         """
         Build a deep autoencoder architecture for network anomaly detection
-        
-        Returns:
-        - Compiled Keras Model
         """
         # Encoder
         input_layer = Input(shape=(self.input_dim,))
@@ -67,12 +60,6 @@ class NetworkAnomalyAutoencoder:
     def train(self, X_train, X_val=None, epochs=100, batch_size=32):
         """
         Train the autoencoder
-        
-        Parameters:
-        - X_train (numpy.ndarray): Training data
-        - X_val (numpy.ndarray, optional): Validation data
-        - epochs (int): Number of training epochs
-        - batch_size (int): Batch size for training
         """
         # Prepare callbacks
         early_stopping = EarlyStopping(
@@ -106,13 +93,6 @@ class NetworkAnomalyAutoencoder:
     def detect_anomalies(self, X, threshold_percentile=95):
         """
         Detect anomalies using reconstruction error
-        
-        Parameters:
-        - X (numpy.ndarray): Input data
-        - threshold_percentile (float): Percentile to set anomaly threshold
-        
-        Returns:
-        - numpy.ndarray: Boolean mask of anomalies
         """
         # Reconstruct input
         reconstructed = self.autoencoder.predict(X)

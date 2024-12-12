@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
@@ -9,14 +7,6 @@ import matplotlib.pyplot as plt
 def train_kmeans(X, n_clusters=5):
     """
     Train a K-Means clustering model
-    
-    Parameters:
-    X (numpy.ndarray): Preprocessed feature matrix
-    n_clusters (int): Number of clusters
-    
-    Returns:
-    KMeans: Trained K-Means model
-    float: Silhouette score of the clustering
     """
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
     kmeans.fit(X)
@@ -29,10 +19,6 @@ def train_kmeans(X, n_clusters=5):
 def plot_clusters(X, kmeans):
     """
     Plot the clusters using the first two principal components
-    
-    Parameters:
-    X (numpy.ndarray): Preprocessed feature matrix
-    kmeans (KMeans): Trained K-Means model
     """
     from sklearn.decomposition import PCA
     

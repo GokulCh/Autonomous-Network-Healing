@@ -6,12 +6,6 @@ from sklearn.impute import SimpleImputer
 def preprocess_network_data(df):
     """
     Preprocess the UNSW-NB15 network dataset for anomaly detection
-    
-    Parameters:
-    df (pandas.DataFrame): Input dataframe with network traffic features
-    
-    Returns:
-    tuple: Preprocessed features and corresponding labels
     """
     # Remove unnecessary columns
     columns_to_drop = ['id', 'attack_cat', 'label']
