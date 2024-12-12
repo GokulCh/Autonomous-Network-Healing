@@ -1,13 +1,19 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from tensorflow.keras.models import Model
+from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Input, Dense, Dropout, BatchNormalization, LeakyReLU
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.losses import MeanSquaredError
+from tensorflow.keras.saving import register_keras_serializable
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+# Registering 'mse' to handle legacy models
+@register_keras_serializable()
+def mse(y_true, y_pred):
+    return MeanSquaredError()(y_true, y_pred)
 
 class NetworkAnomalyAutoencoder:
     def __init__(self, input_dim, encoding_dim=32):
