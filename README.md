@@ -18,86 +18,120 @@ Here’s an overview of the main folders and their purpose:
 Autonomous_Network_Healing/
 │
 ├── datasets/               # Contains raw, processed, and simulated network data
+│   ├── processed_data/
+│   │   ├── processed_test_features.csv
+│   │   ├── processed_test_labels.csv
+│   │   ├── processed_train_features.csv
+│   │   └── processed_train_labels.csv
+│   ├── raw_data/
+│   └── simulation_data/
 ├── models/                 # Trained models, checkpoints, and logs
+│   ├── autoencoder/
+│   │   ├── network_anomaly_autoencoder.keras
+│   │   ├── evaluation_on_train_data_output.txt
+│   │   ├── evaluation_on_train_data_output2.txt
+│   │   ├── evaluation_on_train_data_output3.txt
+│   │   └── error_dist_on_test_data.txt
+│   ├── clustering/
+│   │   ├── kmeans_train_output.txt
+│   │   ├── kmeans_test_output.txt
+│   │   └── tf_kmeans_centers.npy
+│   └── reinforcement_learning/
+│       ├── network_healing_rl_model.h5
+│       ├── network_healing_rl_model_old.h5
+│       ├── output.txt
+│       └── simple_network_healing_model.keras
 ├── simulations/            # NS3 simulation configs, results, and metrics
+│   ├── ns3_configs/
+│   └── results/
 ├── scripts/                # Python scripts for preprocessing, training, and testing
+│   ├── autoencoder/
+│   │   ├── evaluate_autoencoder.py
+│   │   ├── train_autoencoder.py
+│   │   ├── train_autoencoder_old.py
+│   │   └── train_autoencoder_old2.py
+│   ├── clustering/
+│   │   ├── evaluate_cluster.py
+│   │   └── train_cluster.py
+│   ├── data_processing/
+│   │   └── data_processing.py
+│   ├── reinforcement_learning/
+│   │   ├── evaluate_rl_agent.py
+│   │   ├── train_rl_agent.py
+│   │   └── train_rl_agent_old.py
+│   └── simulation/
+│       ├── run_ns3_simulation.py
+│       └── run_ns3_simulation_old.py
 ├── reports/                # Project documentation, reports, and presentations
+│   ├── ~$tonomous_Network_Healing.doc
+│   ├── Autonomous_Network_Healing.doc
+│   └── ceidp_paper-template.doc
 ├── docs/                   # Documentation files for setup, tools, and guides
-├── utilities/              # Supplementary tools for logging, configs, and visualization
-└── .gitignore              # Specifies files to exclude from version control
+├── .gitignore              # Specifies files to exclude from version control
+└── README.md               # Project overview and instructions
 ```
 
 ### **1. `datasets/`**
 Contains all datasets used for training, testing, and validating the models.
-- **`raw_data/`**: Original datasets, such as MAWI, CAIDA, and UNSW-NB15.
-  - Example: `mawi_traffic_archive.csv`
 - **`processed_data/`**: Cleaned and preprocessed data for model training and testing.
-  - Example: `training_data.csv`
-- **`simulation_data/`**: Data generated from NS3 simulations, such as traffic logs and anomaly results.
-  - Example: `simulated_anomalies_traffic.csv`
+  - `processed_test_features.csv`
+  - `processed_test_labels.csv`
+  - `processed_train_features.csv`
+  - `processed_train_labels.csv`
+- **`raw_data/`**: Original datasets.
+- **`simulation_data/`**: Data generated from NS3 simulations.
 
 ### **2. `models/`**
 Stores machine learning models and their training logs.
-- **`anomaly_detection/`**:
-  - `autoencoder_model.h5`: Pre-trained autoencoder model for anomaly detection.
-  - `clustering_model.pkl`: Trained clustering model (e.g., K-means).
-  - `training_logs/`: Logs generated during training, such as loss curves and metrics.
+- **`autoencoder/`**:
+  - `network_anomaly_autoencoder.keras`: Pre-trained autoencoder model for anomaly detection.
+  - `evaluation_on_train_data_output.txt`: Evaluation output on training data.
+  - `evaluation_on_train_data_output2.txt`: Additional evaluation output on training data.
+  - `evaluation_on_train_data_output3.txt`: Another evaluation output on training data.
+  - `error_dist_on_test_data.txt`: Error distribution on test data.
+- **`clustering/`**:
+  - `kmeans_train_output.txt`: Output from K-means training.
+  - `kmeans_test_output.txt`: Output from K-means testing.
+  - `tf_kmeans_centers.npy`: Trained K-means cluster centers.
 - **`reinforcement_learning/`**:
-  - `rl_agent.pkl`: Trained RL agent for corrective actions.
-  - `training_logs/`: Logs detailing RL agent's training progress.
+  - `network_healing_rl_model.h5`: Trained RL model for network healing.
+  - `network_healing_rl_model_old.h5`: Older version of the RL model.
+  - `output.txt`: Output from RL model training.
+  - `simple_network_healing_model.keras`: Simple network healing model.
 
 ### **3. `simulations/`**
 Contains configuration files and results from NS3 simulations.
 - **`ns3_configs/`**: XML or text files for defining simulation scenarios.
-  - Example: `traffic_congestion_scenario.xml`
 - **`results/`**: Outputs and performance metrics from simulations.
-  - Examples:
-    - `anomaly_detection_results.csv`
-    - `performance_metrics.json`
 
 ### **4. `scripts/`**
 Houses Python scripts for data preprocessing, model training, and simulation execution.
-- **`data_processing/`**:
-  - `clean_data.py`: Script for cleaning and normalizing raw datasets.
-  - `feature_engineering.py`: Creates features like entropy and time-windowed metrics.
-  - `split_data.py`: Splits data into training and testing sets.
-- **`anomaly_detection/`**:
+- **`autoencoder/`**:
+  - `evaluate_autoencoder.py`: Script to evaluate the autoencoder model.
   - `train_autoencoder.py`: Script to train the autoencoder model.
-  - `train_clustering.py`: Script to train a clustering model.
-  - `evaluate_anomaly_detection.py`: Tests anomaly detection performance.
+  - `train_autoencoder_old.py`: Older version of the autoencoder training script.
+  - `train_autoencoder_old2.py`: Another older version of the autoencoder training script.
+- **`clustering/`**:
+  - `evaluate_cluster.py`: Script to evaluate clustering.
+  - `train_cluster.py`: Script to train a clustering model.
+- **`data_processing/`**:
+  - `data_processing.py`: Script for data preprocessing.
 - **`reinforcement_learning/`**:
+  - `evaluate_rl_agent.py`: Script to evaluate the RL agent.
   - `train_rl_agent.py`: Script to train the RL agent.
-  - `evaluate_rl_agent.py`: Tests the corrective action model.
+  - `train_rl_agent_old.py`: Older version of the RL agent training script.
 - **`simulation/`**:
   - `run_ns3_simulation.py`: Automates NS3 simulations.
-  - `analyze_simulation_data.py`: Processes simulation outputs for evaluation.
+  - `run_ns3_simulation_old.py`: Older version of the NS3 simulation script.
 
 ### **5. `reports/`**
 Contains all project documentation and presentations.
-- **`preliminary_report.docx`**: Initial report outlining the project's objectives, assumptions, and framework.
-- **`final_report.docx`**: Comprehensive report with results and analyses.
-- **`presentation.pptx`**: Slide deck summarizing the project for presentations.
-- **`references/`**:
-  - `citations.bib`: Bibliographic references for the project.
-  - `related_work.pdf`: Key papers and resources.
+- `~$tonomous_Network_Healing.doc`: Temporary file.
+- `Autonomous_Network_Healing.doc`: Main project report.
+- `ceidp_paper-template.doc`: Paper template for CEIDP.
 
 ### **6. `docs/`**
 Includes general documentation for understanding and replicating the project.
-- `project_plan.md`: High-level timeline and milestones.
-- `setup_guide.md`: Instructions for setting up the environment and dependencies.
-- `tools_and_technologies.md`: Overview of tools like NS3, TensorFlow, and PyTorch.
-
-### **7. `utilities/`**
-Supplementary tools and scripts.
-- **`logging/`**:
-  - `log_parser.py`: Script to process logs for debugging.
-- **`config/`**:
-  - `config.yaml`: Configuration file for setting hyperparameters and paths.
-  - `hyperparameters.json`: Stores model-specific parameters for training.
-- **`visualization/`**:
-  - `plot_metrics.py`: Generates performance plots (e.g., accuracy, precision-recall curves).
-  - `visualize_anomalies.py`: Visualizes detected anomalies.
-  - `visualize_corrective_actions.py`: Displays the RL agent's decision-making.
 
 ---
 
@@ -109,19 +143,21 @@ Supplementary tools and scripts.
    pip install -r requirements.txt
    ```
 2. Install NS3:
-   - Follow the setup instructions in `docs/setup_guide.md`.
 
 ### **2. Preprocess the Data**
 - Run the preprocessing scripts:
   ```bash
-  python scripts/data_processing/clean_data.py
-  python scripts/data_processing/feature_engineering.py
+  python scripts/data_processing/data_processing.py
   ```
 
 ### **3. Train the Models**
 - Train the anomaly detection model:
   ```bash
-  python scripts/anomaly_detection/train_autoencoder.py
+  python scripts/autoencoder/train_autoencoder.py
+  ```
+- Train the clustering model:
+  ```bash
+  python scripts/clustering/train_cluster.py
   ```
 - Train the RL agent:
   ```bash
@@ -133,24 +169,13 @@ Supplementary tools and scripts.
   ```bash
   python scripts/simulation/run_ns3_simulation.py
   ```
-- Analyze simulation results:
-  ```bash
-  python scripts/simulation/analyze_simulation_data.py
-  ```
-
-### **5. Visualize Results**
-- Generate performance plots:
-  ```bash
-  python utilities/visualization/plot_metrics.py
-  ```
-
 ---
 
 ## **Tools and Technologies**
 - **NS3:** Network simulator for generating and testing anomaly scenarios.
 - **TensorFlow & PyTorch:** Frameworks for training machine learning models.
-- **Python Libraries:** pandas, scikit-learn, Matplotlib, NumPy.
-- **Datasets:** MAWI, CAIDA, UNSW-NB15.
+- **Python Libraries:** pandas, scikit-learn, Matplotlib, NumPy, etc.
+- **Datasets:** UNSW-NB15.
 
 ---
 
