@@ -1,0 +1,7 @@
+Total test samples: 175341
+Detected anomalies: 12053
+Anomaly percentage: 6.87%
+Precision: 0.9855
+Recall: 0.0995
+F1 Score: 0.1808
+ROC AUC: 0.4416

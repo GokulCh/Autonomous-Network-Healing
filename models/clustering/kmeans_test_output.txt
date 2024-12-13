@@ -1,0 +1,6 @@
+Original test data shape: (175341, 197)
+Truncated test data shape: (175341, 193)
+5480/5480 ━━━━━━━━━━━━━━━━━━━━ 17s 3ms/step
+Encoded test data shape: (175341, 193)
+Reduced test data shape: (175341, 2)
+Plotting test data clusters:
