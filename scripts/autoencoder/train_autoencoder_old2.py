@@ -1,17 +1,14 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from tensorflow.keras.models import Model
+from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Input, Dense, Dropout, BatchNormalization, LeakyReLU
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, TensorBoard
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.losses import MeanSquaredError
 from tensorflow.keras.saving import register_keras_serializable
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
-# Enable mixed precision for faster training on modern GPUs
-tf.keras.mixed_precision.set_global_policy('mixed_float16')
 
 # Registering 'mse' to handle legacy models
 @register_keras_serializable()
@@ -58,16 +55,15 @@ class NetworkAnomalyAutoencoder:
         decoded = Dropout(0.3)(decoded)
 
         # Output layer reconstructs the input
-        output_layer = Dense(self.input_dim, activation='linear', dtype='float32')(decoded)
+        output_layer = Dense(self.input_dim, activation='linear')(decoded)
 
         # Create autoencoder model
         autoencoder = Model(input_layer, output_layer)
 
         # Compile with mean squared error loss
         autoencoder.compile(
-            optimizer=Adam(learning_rate=0.0005),
-            loss='mean_squared_error',
-            metrics=['mae']
+            optimizer=Adam(learning_rate=0.0005),  # Reduced learning rate
+            loss='mean_squared_error'
         )
         
         return autoencoder
@@ -92,11 +88,6 @@ class NetworkAnomalyAutoencoder:
             verbose=1
         )
         
-        tensorboard = TensorBoard(
-            log_dir='./logs',
-            histogram_freq=1
-        )
-        
         # Train the autoencoder
         history = self.autoencoder.fit(
             X_train, X_train,
@@ -104,7 +95,7 @@ class NetworkAnomalyAutoencoder:
             batch_size=batch_size,
             shuffle=True,
             validation_data=(X_val, X_val) if X_val is not None else None,
-            callbacks=[early_stopping, reduce_lr, tensorboard],
+            callbacks=[early_stopping, reduce_lr],
             verbose=1
         )
         
@@ -115,16 +106,16 @@ class NetworkAnomalyAutoencoder:
         Detect anomalies using reconstruction error
         """
         # Reconstruct input
-        reconstructed = self.autoencoder.predict(X, verbose=0)
+        reconstructed = self.autoencoder.predict(X)
         
         # Calculate reconstruction error
-        reconstruction_errors = np.mean(np.square(X - reconstructed), axis=1)
+        mse = np.mean(np.square(X - reconstructed), axis=1)
         
         # Adaptive threshold
-        threshold = reconstruction_errors.mean() + threshold_factor * reconstruction_errors.std()
+        threshold = mse.mean() + threshold_factor * mse.std()
         
         # Identify anomalies
-        return reconstruction_errors > threshold, reconstruction_errors
+        return mse > threshold, mse
 
     def plot_training_history(self, history):
         """
@@ -157,7 +148,7 @@ class NetworkAnomalyAutoencoder:
 
 def main():
     # Load preprocessed data
-    X_train = pd.read_csv('datasets/processed_data/processed_train_features.csv').values
+    X_train = pd.read_csv('processed_train_features.csv').values
 
     # Split into train and validation
     X_train, X_val = train_test_split(X_train, test_size=0.2, random_state=42)
@@ -185,8 +176,8 @@ def main():
     print(f"Detected anomalies: {np.sum(anomalies)}")
     print(f"Anomaly percentage: {np.mean(anomalies) * 100:.2f}%")
 
-    # Save the model in SavedModel format
-    autoencoder.autoencoder.save('models/autoencoder/network_anomaly_autoencoder')
+    # Save the model
+    autoencoder.autoencoder.save('network_anomaly_autoencoder_v2.h5')
 
 if __name__ == '__main__':
     main()

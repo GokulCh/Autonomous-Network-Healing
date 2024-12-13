@@ -1,52 +1,22 @@
-import subprocess
-import numpy as np
 import pandas as pd
+import numpy as np
 import tensorflow as tf
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from tensorflow.keras.models import load_model
 from typing import List, Dict, Any
 
-def load_model_with_custom_objects(model_path: str):
-    """
-    Safely load a Keras model with custom loss functions and error handling
-    
-    Parameters:
-    - model_path: Path to the saved Keras model
-    
-    Returns:
-    - Loaded Keras model or None if loading fails
-    """
-    custom_objects = {
-        'mse': tf.keras.losses.MeanSquaredError(),
-        # Add any other custom loss functions or layers here
-    }
-    
-    try:
-        model = tf.keras.models.load_model(
-            model_path, 
-            custom_objects=custom_objects
-        )
-        return model
-    except Exception as e:
-        print(f"Error loading model from {model_path}: {e}")
-        return None
+# Load pre-trained models
+autoencoder = load_model('models/autoencoder/network_anomaly_autoencoder', custom_objects={'mse': tf.keras.losses.MeanSquaredError()})
+kmeans = KMeans(n_clusters=5)
+kmeans = kmeans.fit(pd.read_csv('datasets/processed_data/processed_train_features.csv').values)
 
 class NS3NetworkSimulation:
-    def __init__(self, 
-                 autoencoder_model_path: str, 
-                 rl_model_path: str):
+    def __init__(self, rl_model_path: str):
         """
-        Initialize NS3 simulation with pre-trained ML models
-        
-        Parameters:
-        - autoencoder_model_path: Path to saved autoencoder model
-        - rl_model_path: Path to saved reinforcement learning model
+        Initialize NS3 simulation with pre-trained RL model
         """
-        # Load pre-trained models with custom loading function
-        self.autoencoder = load_model_with_custom_objects(autoencoder_model_path)
-        self.rl_model = load_model_with_custom_objects(rl_model_path)
-        
-        # Validate model loading
-        if self.autoencoder is None or self.rl_model is None:
-            raise ValueError("Failed to load one or more ML models. Check model paths and compatibility.")
+        self.rl_model = load_model(rl_model_path, custom_objects={'mse': tf.keras.losses.MeanSquaredError()})
         
         # Simulation configurations
         self.simulation_scenarios = [
@@ -60,12 +30,6 @@ class NS3NetworkSimulation:
     def generate_ns3_config(self, scenario: str) -> Dict[str, Any]:
         """
         Generate NS3 simulation configuration for different network scenarios
-        
-        Parameters:
-        - scenario: Type of network scenario to simulate
-        
-        Returns:
-        - Dictionary of simulation parameters
         """
         scenarios_config = {
             'traffic_congestion': {
@@ -103,12 +67,6 @@ class NS3NetworkSimulation:
     def run_ns3_simulation(self, scenario: str) -> Dict[str, Any]:
         """
         Run NS3 simulation for a specific network scenario
-        
-        Parameters:
-        - scenario: Network scenario to simulate
-        
-        Returns:
-        - Simulation results and metrics
         """
         # Generate scenario configuration
         config = self.generate_ns3_config(scenario)
@@ -151,12 +109,6 @@ class NS3NetworkSimulation:
     def _parse_simulation_output(self, output: str) -> Dict[str, Any]:
         """
         Parse NS3 simulation output into structured metrics
-        
-        Parameters:
-        - output: Raw simulation output string
-        
-        Returns:
-        - Dictionary of parsed metrics
         """
         try:
             metrics = {
@@ -174,16 +126,10 @@ class NS3NetworkSimulation:
     def detect_anomalies(self, simulation_data: np.ndarray) -> List[bool]:
         """
         Use autoencoder to detect anomalies in simulation data
-        
-        Parameters:
-        - simulation_data: Network traffic data from NS3
-        
-        Returns:
-        - List of boolean anomaly flags
         """
         try:
             # Reconstruct input data
-            reconstructed = self.autoencoder.predict(simulation_data)
+            reconstructed = autoencoder.predict(simulation_data)
             
             # Calculate reconstruction error
             mse = np.mean(np.square(simulation_data - reconstructed), axis=1)
@@ -196,17 +142,19 @@ class NS3NetworkSimulation:
             print(f"Anomaly detection error: {e}")
             return []
     
-    def apply_corrective_actions(self, anomalies: List[bool], metrics: Dict[str, Any]):
+    def cluster_data(self, simulation_data: np.ndarray) -> np.ndarray:
+        """
+        Use clustering model to cluster the simulation data
+        """
+        return kmeans.predict(simulation_data)
+    
+    def apply_corrective_actions(self, anomalies: List[bool], metrics: Dict[str, Any], clusters: np.ndarray):
         """
         Use RL model to determine and apply corrective actions
-        
-        Parameters:
-        - anomalies: List of detected anomalies
-        - metrics: Network performance metrics
         """
         try:
-            # Convert metrics and anomalies to state representation
-            state = self._prepare_rl_state(anomalies, metrics)
+            # Convert metrics, anomalies, and clusters to state representation
+            state = self._prepare_rl_state(anomalies, metrics, clusters)
             
             # Predict best action using RL model
             action = np.argmax(self.rl_model.predict(state.reshape(1, -1), verbose=0))
@@ -224,36 +172,27 @@ class NS3NetworkSimulation:
         except Exception as e:
             print(f"Error applying corrective actions: {e}")
     
-    def _prepare_rl_state(self, anomalies: List[bool], metrics: Dict[str, Any]) -> np.ndarray:
+    def _prepare_rl_state(self, anomalies: List[bool], metrics: Dict[str, Any], clusters: np.ndarray) -> np.ndarray:
         """
         Prepare state representation for RL model
-        
-        Parameters:
-        - anomalies: List of detected anomalies
-        - metrics: Network performance metrics
-        
-        Returns:
-        - Normalized state vector
         """
         try:
             state_features = [
                 metrics.get('packet_loss_rate', 0),
                 metrics.get('average_latency', 0),
                 metrics.get('network_throughput', 0),
-                sum(anomalies) / len(anomalies) if anomalies else 0  # Proportion of anomalies
+                sum(anomalies) / len(anomalies) if anomalies else 0,  # Proportion of anomalies
+                np.mean(clusters)  # Mean cluster label
             ]
             
             return np.array(state_features)
         except Exception as e:
             print(f"Error preparing RL state: {e}")
-            return np.zeros(4)
+            return np.zeros(5)
     
     def comprehensive_network_test(self):
         """
         Run comprehensive network testing across all scenarios
-        
-        Returns:
-        - Dictionary of test results for each scenario
         """
         test_results = {}
         
@@ -271,8 +210,11 @@ class NS3NetworkSimulation:
                 # Detect anomalies
                 anomalies = self.detect_anomalies(simulation_data)
                 
+                # Cluster data
+                clusters = self.cluster_data(simulation_data)
+                
                 # Apply corrective actions
-                self.apply_corrective_actions(anomalies, simulation_metrics)
+                self.apply_corrective_actions(anomalies, simulation_metrics, clusters)
                 
                 test_results[scenario] = {
                     'metrics': simulation_metrics,
@@ -285,8 +227,7 @@ def main():
     try:
         # Initialize simulation framework
         network_tester = NS3NetworkSimulation(
-            autoencoder_model_path='network_anomaly_autoencoder.h5',
-            rl_model_path='network_healing_rl_model.h5'
+            rl_model_path='models/reinforcement_learning/network_healing_rl_model.h5'
         )
         
         # Run comprehensive network tests
